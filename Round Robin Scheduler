@@ -1,0 +1,106 @@
+import java.util.*;
+import java.io.*;
+
+public class Scheduler {
+
+    public static void main(String[] args) throws FileNotFoundException {
+
+   	 //Reads file:
+   	 Scanner inFile = new Scanner(new FileReader("input3.data"));
+
+   	 ArrayList<Integer> in = new ArrayList<Integer>();
+   	 ArrayList<Integer> out = new ArrayList<Integer>();
+
+   	 //Converts file into ArrayList 'in'.
+   	 while(inFile.hasNextInt())
+   		 in.add(inFile.nextInt());
+
+   	 //Takes out first three numbers and assigns respectfully as 'processes'
+   	 //for number of processes, 'sType' for scheduling type (1 for Round Robin,
+   	 //in this case), and 'quanta' for the quantum of time used.
+   	 int processes = in.remove(0);
+   	 int sType = in.remove(0);
+   	 int quanta = in.remove(0);
+
+   	 //Executes Round Robin scheduling:
+   	 if(sType == 1){
+   		 //Creates a queue called 'q'
+   		 ArrayList<int[]> q = new ArrayList<int[]>();
+   		 int lastTime = 0, time = 0; int p[] = new int[2];
+
+   		 while(true){
+   			 boolean hanging = false;
+   			 //If something in q:
+   			 if(!q.isEmpty()){
+   				 //Take it out:
+   				 p = q.remove(0);
+   				 //If time remaining in this process is less than or equal
+   				 //to the quanta, update time, update 'out' ArrayList.
+   				 if(p[1] <= quanta){
+   					 lastTime = time;
+   					 out.add(time);
+   					 time = time + p[1];
+   					 out.add(time);
+   					 out.add(p[0]);
+   				 }
+   				 //Otherwise, time remaining is more than quanta, so update
+   				 //time for one full quanta, update time remaining for this
+   				 //process and hold on to it to put into queue after looking
+   				 //for new arrivals.
+   				 else{
+   					 lastTime = time;
+   					 out.add(time);
+   					 time = time + quanta;
+   					 out.add(time);
+   					 p[1] = p[1] - quanta;
+   					 out.add(p[0]);
+   					 hanging = true;
+   				 }
+   			 }
+   			 //If this is the first run through, look for first arrival with
+   			 //arrival time = 0 and put into queue.
+   			 if(time == 0)
+   				 for(int h = lastTime; h <= time; h++)
+   					 for(int i = 0; i < processes; i++){
+   						 if(in.get(i*3) == h){
+   							 int d[] = new int[2];
+   							 d[0] = i+1;
+   							 d[1] = in.get((i*3)+1);
+   							 q.add(d);
+   						 }
+   					 }
+   			 //Otherwise, look through last burst of time for new arrivals
+   			 //and put into queue.
+   			 else
+   				 for(int h = lastTime+1; h <= time; h++)
+   					 for(int i = 0; i < processes; i++){
+   						 if(in.get(i*3) == h){
+   							 int d[] = new int[2];
+   							 d[0] = i+1;
+   							 d[1] = in.get((i*3)+1);
+   							 q.add(d);
+   						 }
+   					 }
+   			 //Put process executed during this time slot onto queue if it
+   			 //still has time remaining.
+   			 if(hanging == true)
+   				 q.add(p);
+   			 //If nothing in queue at the end of loop, get out of loop.
+   			 if(q.isEmpty()) break;
+   		 }
+   		 //Create final string to print out of completed 'out' ArrayList.
+   		 String s = "";
+   		 for(int c = 0; c < out.size(); c++){
+   			 s += out.get(c)+" ";
+   			 if((c+1)%3 == 0)
+   				 s += "\n";
+   		 }
+   		 //Print output.
+   		 System.out.println(s);
+
+   	 }
+   	 inFile.close();
+    }
+}
+
+
