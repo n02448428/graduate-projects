@@ -1,0 +1,213 @@
+Dmitry Markelov
+Computer Science 3
+Lab #3
+
+
+import java.util.*;
+
+class Airport
+{
+	// Constants used to indicate "direction", e.g. generateFlights()
+	private static final int UNUSED=0, TAKEOFF=1, LANDING=2;
+
+	class Flight
+	{
+		/* The time, in clock ticks, at which this flight arrived at the
+		 * airport's runway (on the ground or in the air).
+		 */
+		private int ready_time;
+		private String name;
+		public Flight (String name, int ready_time)
+		{
+			this.name = name;
+			this.ready_time = ready_time;
+		}     public String getName()
+		{
+			return name;
+		}     public int getReadyTime()
+		{
+			return ready_time;
+		}     public String toString()
+		{
+			return name + ": " + ready_time;
+		}
+	}   
+	private Queue arrive;
+	private Queue depart;
+	private int simlength, arr_wait;
+	private int arr_time, arr_delay;
+	private int dep_time, dep_delay;
+	public Airport(int takeoff_time, int landing_time,
+			int avg_departure, int avg_arrival,
+			int safe_circling, int duration)
+	{
+		arrive = new ListQueue();
+		depart = new ListQueue();
+		simlength = duration;
+		arr_time = landing_time;
+		arr_delay = avg_arrival;
+		dep_time = takeoff_time;
+		dep_delay = avg_departure;
+		arr_wait = safe_circling;
+	}
+	private void generateFlights (int direction)
+	{
+		/*
+		 * Generates the workload (fill the queue with flights)
+		 * Enough work should be generated to ensure that "time is up",
+		 * before the queues become empty. It doesn't matter if all of the
+		 * events are not used.
+		 */
+		Queue q = arrive;
+		Random r = new Random();
+		int del = arr_delay*2;
+		int base = arr_time;
+		if(direction==TAKEOFF){
+			q = depart;
+			del = dep_delay*2;
+			base = dep_time;
+		}
+		int next=0;
+		int numFlights=0;
+		for(int last=0;last<simlength;last=next+1){
+			next = r.nextInt(del)+base+last;
+			((ListQueue) q).enqueue(new Flight("Flight "+Integer.toString(numFlights),next));
+			numFlights++;
+		}
+	}
+
+	private int count(Queue q){
+		int ret=0;
+		while(!q.isEmpty()){
+			ret++;
+			((ListQueue) q).dequeue();
+		}
+		return ret;
+	}
+
+	public void simulate()
+	{
+		/*
+		 * Generates both directions of queues and then enter the
+		 * main work loop. Tracks the aircraft until "time is up"
+		 */
+		generateFlights(TAKEOFF);
+		generateFlights(LANDING);
+		int time=0;
+		int totalArrivals=0;
+		int totalDepartures=0;
+		int totalArrivalWait=0;
+		int totalDepartureWait=0;
+		int crashes=0;
+		Random r = new Random();
+		while(time<simlength){
+			if(arrive.isEmpty() || depart.isEmpty()){
+				System.out.println("ERROR ran out of flights at time "+time);
+				break;
+			}
+			Flight next = (Flight)arrive.peek();
+			Flight d = (Flight)depart.peek();
+			if(next.getReadyTime()+arr_wait > dep_delay + dep_time + time)
+				next=d;//if it's safe to let a guy take off (on average)
+			//skip forward in time if possible
+			if(time<next.getReadyTime()){
+				time=next.getReadyTime();
+				if(time >= simlength)break;
+			}
+			if(next==d){//if departing
+				totalDepartures++;
+				totalDepartureWait+=(time-next.getReadyTime());
+				time+=dep_time;
+				time+=r.nextInt(dep_delay*2);
+				((ListQueue) depart).dequeue();
+			}else{//arriving
+				if(next.getReadyTime()+arr_wait < time){
+					crashes++;
+					((ListQueue) arrive).dequeue();
+				}else{//landed
+					totalArrivals++;
+					totalArrivalWait+=(time - next.getReadyTime());
+					time+=arr_time;
+					time+=r.nextInt(arr_delay*2);
+					((ListQueue) arrive).dequeue();
+				}
+			}
+		}
+		if(totalArrivals > 0){
+			System.out.println("Number of planes landed: "+totalArrivals);
+			System.out.println("Average waiting time for landing: "+totalArrivalWait/totalArrivals);
+		}
+		else
+			System.out.println("No successful landings");
+		if(totalDepartures > 0){
+			System.out.println("Number of planes taken off: "+totalDepartures);
+			System.out.println("Average waiting time for take off: "+totalDepartureWait/totalDepartures);
+		}
+		else
+			System.out.println("No takeoffs");
+		System.out.println("Number of planes crashed: "+crashes);
+
+		System.out.println("There are "+count(arrive)+" waiting to land, "+count(depart)+" waiting to takeoff.");
+	}
+	public static void main (String []args)
+	{
+		Scanner sc = new Scanner(System.in);
+		int minToLand, minToTakeOff, avgTimeBetweenLandings, avgTimeBetweenTakeOffs, maxTimeInAir, totalSimTime;
+		System.out.println("Please enter amount of minutes to land:");
+		minToLand = sc.nextInt();
+		System.out.println("Please enter amount of minutes to take off:");
+		minToTakeOff = sc.nextInt();
+		System.out.println("Please enter average number of minutes between landing planes:");
+		avgTimeBetweenLandings = sc.nextInt();
+		System.out.println("Please enter average number of minutes between planes taking off:");
+		avgTimeBetweenTakeOffs = sc.nextInt();
+		System.out.println("Please enter maximum amount of time a plane can spend in air before crashing:");
+		maxTimeInAir = sc.nextInt();
+		System.out.println("Please enter total simulation minutes:");
+		totalSimTime = sc.nextInt();
+		Airport a = new Airport(minToTakeOff, minToLand, avgTimeBetweenTakeOffs, avgTimeBetweenLandings, maxTimeInAir, totalSimTime);
+		System.out.println("Amount of minutes to land: "+minToLand);
+		System.out.println("Amount of minutes to take off: "+minToTakeOff);
+		System.out.println("Average amount of time between planes to land: "+avgTimeBetweenLandings);
+		System.out.println("Average amount of time between planes to take off: "+avgTimeBetweenTakeOffs);
+		System.out.println("Maximum amount of time in the air before crashing: "+maxTimeInAir);
+		System.out.println("Total simulation minutes: "+totalSimTime);
+		System.out.println(" ");
+		a.simulate();
+		sc.close();
+	}
+}
+
+
+
+import java.util.*;
+
+public abstract class ListQueue implements Queue
+{
+
+    private Vector v;
+    public ListQueue(){
+	v = new Vector();
+    }
+    public Object peek(){
+	if(v.isEmpty())return null;
+	return v.firstElement();
+    }
+    public Object dequeue(){
+	if(v.isEmpty())return null;
+	return v.remove(0);
+    }
+    public void enqueue(Object o){
+	v.add(o);
+    }
+    public boolean isEmpty(){
+	return v.isEmpty();
+    }
+    public String toString(){
+	if(v.isEmpty())return "EMPTY";
+	String ret="";
+	for(Enumeration e = v.elements();e.hasMoreElements();)
+	    ret+=(e.nextElement().toString()+"\n");
+	return ret;
+    }
+}
