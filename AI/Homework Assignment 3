@@ -1,0 +1,189 @@
+Name: Dmitry Markelov
+ID: n02448428
+CPS 493-01: Homework Assignment 3 
+
+
+My code:
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package homework3;
+
+public class GA {
+	int PopulationSize;
+	int iter;
+	int numBits;
+	double crossoverRate;
+	double mutationRate;
+    
+	public GA(int PopulationSize, int iter, int numBits, double crossoverRate, double mutationRate){
+    	this.PopulationSize = PopulationSize;
+    	this.iter = iter;
+    	this.numBits = numBits;
+    	this.crossoverRate = crossoverRate;
+    	this.mutationRate = mutationRate;
+   	 
+	}
+   
+	public void runGA(){
+  	 
+    	//encoding and initialized the first population
+    	int[][] Population = Encoding(PopulationSize, numBits);
+    	//calculate the fitness
+   	 
+    	double[] fitness = fitnessEvaluation(Population);
+    
+    	for(int i=0; i<iter; i++){
+       	 
+        	int[][] newPopulation = new int[PopulationSize][numBits];
+       	 
+        	int j = 0;
+        	while(j< PopulationSize){
+        	int[][] parents=Selection(Population, fitness);
+       	 
+        	//crossover
+        	int[][] children = Crossover(crossoverRate,parents);
+        	//mutation
+        	int[][] Newchildren = Mutation(mutationRate,children);
+       	 
+        	//put the new children into the new population
+        	newPopulation[j]=Newchildren[0];
+        	j++;
+        	newPopulation[j]=Newchildren[1];
+        	j++;     	 
+       	 
+        	}
+       	 
+        	//Evaluate the new generation
+        	Population = newPopulation;
+        	fitness = fitnessEvaluation(Population);
+       	 
+    	}
+    	display(Population);
+    	findBest(fitness, Population);
+   	 
+   	 
+	}
+	/**
+ 	* Encode and initialize the first population
+ 	* @param n
+ 	* @param numBits
+ 	* @return
+ 	*/
+	private int[][] Encoding(int n, int numBits){
+    	int[][] Population = new int[n][numBits];
+    	for(int i=0; i<n; i++)
+        	for(int j= 0; j<numBits; j++){
+            	double x = java.lang.Math.random();
+            	if(x<.5)
+                	Population[i][j]=0;
+            	else{
+                	Population[i][j]=1;
+            	}
+        	}
+    	return Population;
+	}
+ 	/**
+ 	* Calculate the fitness value of each individual
+ 	*/   
+    
+	private double[] fitnessEvaluation(int[][] Population){
+    	double[] fitness = new double[Population.length];
+    	//for each individual,
+    	//Decode the value from Binary to Decimal Number, and calculat it use the function 15x - x^2
+   	 
+   	 fitness = (15*fitness) - java.lang.Math.pow(fitness, 2);
+   	 
+    	return fitness;
+	}
+	/**
+ 	* Use the Roulettle Wheel selection
+ 	* Remember that the sum of the fitness ratio is equal to 1.
+	*/
+	private int[][] Selection(int[][] Population, double[] fitness){
+ 
+    	int[][] Parents=new int[2][Population[0].length];
+          	//To do
+   		   for(int i=0; i<Population[0].length; i++){
+   			   if(Population[i][0] < fitness)
+   				   Parents[i][0] = Population[i][0];
+   			   else
+   				   Parents[i][0] = Population[i][fitness];
+   		   }
+    	return Parents;
+	}
+	/**
+ 	* Crossover
+ 	*/    
+	private int[][] Crossover(double crossoverRate, int[][] children){
+    	int[][] newChildren = new int[2][children[0].length];
+    	//To Do, use the one-point crossover
+   		   for(int i=0; i<children[0].length; i++){
+   			   if(children[i][0] < crossoverRate)
+   				   newChildren[i][0] = children[i][0];
+   			   else
+   				   newChildren[i][0] = children[i][crossoverRate];
+   		   }
+   	 
+    	return newChildren;
+	}
+	/**
+ 	* Mutation with a probability
+ 	* @param mutationRate, probability that a pair of children will apply mutation
+ 	* @param children, a pair of chromosomes/individuals
+ 	* @return newChildren, a new pair of children after mutation
+ 	*/
+	private int[][] Mutation(double mutationRate, int[][] children){
+    	int[][] newChildren = new int[2][children[0].length];
+    	//To Do use the mutationRate to select one bit to do the mutation
+   	 double r = java.lang.Math.pow();
+   	 if (r < mutationRate)
+   		 newChildren = children;
+   	 else{
+   		 if(children[0] == 0)
+   			 children[0] = 1;
+   		 if(children[0] = 1)
+   			 children [0] = 0;
+   	 }
+    	return newChildren;
+	}
+	/**
+ 	* Find the best individual and print the result
+ 	*/
+	private void findBest(double[] fitness, int[][] Population){
+    	if(fitness == null){
+        	System.out.println("No Fitness");
+    	}
+    	double best = fitness[0];
+    	int index = 0;
+    	for(int i=1; i<fitness.length; i++)
+        	if(fitness[i]>best){
+            	best = fitness[i];
+            	index = i;
+        	}
+    	System.out.println("The best individual is: " + index);
+   	 
+ 	 
+    	System.out.println("The integer is  "+ best);
+   	 
+	}
+    
+	/**
+ 	* Display
+ 	*/
+   private void display(int[][] Population){
+   	if(Population == null){ 	 
+       	System.out.println("Empty");
+   	}
+    	for (int[] Population1 : Population) {
+        	for (int j = 0; j<Population[0].length; j++) {
+            	System.out.print(Population1[j] + " ");
+        	}
+        	System.out.println();
+    	}
+   }
+   
+}
