@@ -1,0 +1,75 @@
+Dmitry Markelov
+Computer Science 3
+Lab #1
+
+import java.io.*;
+import java.util.*;
+public class calculate {
+static String equation;
+public static void calculate(File txt) throws IOException{
+BufferedReader reader = new BufferedReader(new FileReader(txt));
+String line = null;
+//reads thru every line:
+while ((line = reader.readLine()) != null) {
+StringTokenizer tokenizer = new StringTokenizer(line," ");
+String token;
+double answer;
+equation = line;
+//solves the eq:
+Stack<Double> operands = new Stack<Double>();
+while(tokenizer.hasMoreTokens()){
+token = tokenizer.nextToken();
+double c, b, a = 0;
+if(token.equals("+")){
+c = operands.pop();
+b = operands.pop();
+a = b + c;
+operands.push(a);
+}
+else if(token.equals("-")){
+c = operands.pop();
+b = operands.pop();
+a = b - c;
+operands.push(a);
+}
+else if(token.equals("*")){
+c = operands.pop();
+b = operands.pop();
+a = b * c;
+operands.push(a);
+}
+else if(token.equals("/")){
+c = operands.pop();
+b = operands.pop();
+a = b / c;
+operands.push(a);
+}
+else if(token.equals("^")){
+c = operands.pop();
+b = operands.pop();
+a = Math.pow(b,c);
+operands.push(a);
+}
+else if(token.equals("_")){
+a = operands.pop() * -1;
+operands.push(a);
+}
+else if(token.equals("#")){
+
+a = Math.sqrt(operands.pop());
+operands.push(a);
+}
+else operands.push(Double.parseDouble(token));
+}
+answer = operands.pop();
+System.out.println("The value of "+'"'+equation+'"'+" is "+answer);
+}
+reader.close();
+}
+public static void main(String[] args) throws IOException{
+System.out.println("Hello! This is a postfix expression calculator.");
+File txt = new File("E:/in.dat");
+calculate(txt);
+System.out.println("Bye-bye!");
+}
+}
